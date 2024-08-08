@@ -75,7 +75,6 @@ void backlight() {
     struct input_event event;
     int activity;
     int max_fd = (((input_fd_keyboard > input_fd_trackpad) ? input_fd_keyboard : input_fd_trackpad) > input_fd_touchbar) ? ((input_fd_keyboard > input_fd_trackpad) ? input_fd_keyboard : input_fd_trackpad) : input_fd_touchbar;
-    int timer_status = 1;
 
     while (1) {
         timeout.tv_sec = TIMEOUT;
@@ -95,31 +94,29 @@ void backlight() {
             close(input_fd_touchbar);
             exit(EXIT_FAILURE);
         } else if (activity == 0) {
-            if (timer_status == 1) {
-                if (read_backlight(BACKLIGHT) != '1') {
-                    write_backlight(BACKLIGHT, "1");
-                }
-                timer_status = 0;
-            } else {
-                if (read_backlight(BACKLIGHT) != '0') {
-                    write_backlight(BACKLIGHT, "0");
-                }
+            if (read_backlight(BACKLIGHT) == '2') {
+                write_backlight(BACKLIGHT, "1");
+            } else if (read_backlight(BACKLIGHT) == '1') {
+                write_backlight(BACKLIGHT, "0");
             }
         } else {
             if (FD_ISSET(input_fd_keyboard, &read_fds)) {
                 read(input_fd_keyboard, &event, sizeof(struct input_event));
-                write_backlight(BACKLIGHT, "2");
-                timer_status = 1;
+                if (read_backlight(BACKLIGHT) != '2') {
+                    write_backlight(BACKLIGHT, "2");
+                }
             } 
             if (FD_ISSET(input_fd_trackpad, &read_fds)) {
                 read(input_fd_trackpad, &event, sizeof(struct input_event));
-                write_backlight(BACKLIGHT, "2");
-                timer_status = 1;
+                if (read_backlight(BACKLIGHT) != '2') {
+                    write_backlight(BACKLIGHT, "2");
+                }
             }
             if (FD_ISSET(input_fd_touchbar, &read_fds)) {
                 read(input_fd_touchbar, &event, sizeof(struct input_event));
-                write_backlight(BACKLIGHT, "2");
-                timer_status = 1;
+                if (read_backlight(BACKLIGHT) != '2') {
+                    write_backlight(BACKLIGHT, "2");
+                }
             }
         }
     }
